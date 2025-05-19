@@ -60,3 +60,10 @@ def webhook():
     }
     requests.post('https://api.line.me/v2/bot/message/reply', headers=headers, json=body)
     return "OK"
+
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Renderでは PORT 環境変数を使う
+    app.run(host="0.0.0.0", port=port)
+

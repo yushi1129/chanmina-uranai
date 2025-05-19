@@ -19,32 +19,32 @@ def home():
 @app.route("/webhook", methods=["POST"])
 def webhook():
     body = request.json
-    print(f"[DEBUG] 受信body: {body}")  # ← 追加で受信内容をログ出力
+    print(f"[DEBUG] 受信body: {body}", flush=True)
 
     try:
         event = body["events"][0]
         if "message" not in event or "text" not in event["message"]:
-            print("[DEBUG] textメッセージではありません")
+            print("[DEBUG] textメッセージではありません", flush=True)
             return "OK"
 
         user_text = event["message"]["text"]
         reply_token = event["replyToken"]
 
-        print(f"[DEBUG] ユーザー入力（repr）: {repr(user_text)}")
+        print(f"[DEBUG] ユーザー入力（repr）: {repr(user_text)}", flush=True)
 
         parts = user_text.strip().split(maxsplit=2)
-        print(f"[DEBUG] 分割結果: {parts}")
+        print(f"[DEBUG] 分割結果: {parts}", flush=True)
 
         if len(parts) != 3:
             raise ValueError("入力形式エラー")
 
         birthday, seiza, blood = parts
-        print(f"[DEBUG] 呼び出し開始: {birthday}, {seiza}, {blood}")
+        print(f"[DEBUG] 呼び出し開始: {birthday}, {seiza}, {blood}", flush=True)
 
         reply = get_uranai(birthday, seiza, blood)
 
     except Exception as e:
-        print(f"[DEBUG] 例外発生: {e}")
+        print(f"[DEBUG] 例外発生: {e}", flush=True)
         reply = "⚠️ 入力形式が正しくないよ！\n例：1995-01-01 おうし座 A型"
 
     # LINEへ返信
@@ -77,7 +77,7 @@ def get_uranai(birthday, seiza, blood_type):
         return response.choices[0].message.content
 
     except Exception as e:
-        print(f"[GPTエラー] {e}")
+        print(f"[GPTエラー] {e}", flush=True)
         return "⚠️ 占い中に問題が発生しちゃった…またあとで来てね！"
 
 # Renderでの起動設定

@@ -1,21 +1,65 @@
-def get_uranai(birthday, seiza, blood_type):
+import os
+from flask import Flask, request
+import openai
+import requests
+
+app = Flask(__name__)  # ← これが必要です！
+
+LINE_CHANNEL_ACCESS_TOKEN = os.environ.get("LINE_CHANNEL_ACCESS_TOKEN")
+OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY")
+openai.api_key = OPENAI_API_KEY
+
+@app.route("/")
+def home():
+    return "LINE占いBot 稼働中！"
+
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    body = request.json
+    user_text = body["events"][0]["message"]["text"]
+    reply_token = body["events"][0]["replyToken"]
+
+    try:
+        parts = user_text.strip().split()
+        if len(parts) != 3:
+            raise ValueError("入力形式エラー")
+        birthday, seiza, blood = parts
+        reply = get_uranai(birthday, seiza, blood)
+    except Exception:
+        reply = "⚠️ 入力形式が正しくないよ！\n例：1995-01-01 おひつじ座 A型"
+
+    requests.post(
+        'https://api.line.me/v2/bot/message/reply',
+        headers={
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {LINE_CHANNEL_ACCESS_TOKEN}'
+        },
+        json={
+            'replyToken': reply_token,
+            'messages': [{'type': 'text', 'text': reply}]
+        }
+    )
+    return "OK"
+
+def get_uranai(birthday, seiza, blood):
     try:
         messages = [
-            {"role": "system", "content": "あなたはちゃんみな風の占い師です。情熱的に励ます口調で話してください。"},
-            {"role": "user", "content": f"{birthday}生まれ、{seiza}、{blood_type}の私の今日の運勢を占ってください。\n"
-                                        "・総合運\n・恋愛運\n・金運\n・仕事運\n・ラッキーカラー\n・ラッキーアイテム\nすべてちゃんみな風で。"}
+            {"role": "system", "content": "あなたはちゃんみな風の占い師です。"},
+            {"role": "user", "content": f"{birthday}生まれ、{seiza}、{blood}の私の今日の運勢を占って。\n"
+                                        "・総合運\n・恋愛運\n・金運\n・仕事運\n・ラッキーカラー\n・ラッキーアイテム\n"
+                                        "すべてちゃんみな風で。"}
         ]
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
             messages=messages
         )
-        return response["choices"][0]["message"]["content"]
+        return response.choices[0].message.content
     except Exception as e:
-        print(f"[ERROR] GPT呼び出しに失敗: {e}")
-        return "⚠️ 占い中にエラーが発生しちゃった…時間をおいてもう一度試してみてね。"
+        print(f"[GPTエラー] {e}")
+        return "⚠️ 占い中に問題が発生しちゃった... またあとで試してみて！"
 
-import os
-
+# 🔽 これがないとRenderで動かない
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))  # Renderが渡してくるPORTを使用
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
+

@@ -41,11 +41,12 @@ def webhook():
     )
     return "OK"
 
-def get_uranai(birthday, seiza, blood):
+def get_uranai(birthday, seiza, blood_type):
     try:
+        print(f"[DEBUG] 呼び出し開始：{birthday}, {seiza}, {blood_type}")
         messages = [
             {"role": "system", "content": "あなたはちゃんみな風の占い師です。"},
-            {"role": "user", "content": f"{birthday}生まれ、{seiza}、{blood}の私の今日の運勢を占って。\n"
+            {"role": "user", "content": f"{birthday}生まれ、{seiza}、{blood_type}の私の今日の運勢を占って。\n"
                                         "・総合運\n・恋愛運\n・金運\n・仕事運\n・ラッキーカラー\n・ラッキーアイテム\n"
                                         "すべてちゃんみな風で。"}
         ]
@@ -55,8 +56,9 @@ def get_uranai(birthday, seiza, blood):
         )
         return response.choices[0].message.content
     except Exception as e:
-        print(f"[GPTエラー] {e}")
-        return "⚠️ 占い中に問題が発生しちゃった…またあとで来てな！"
+        print(f"[GPTエラー] {e}")  # ← これが出ないと原因が見えない！
+        return "⚠️ 占い中に問題が発生しちゃった…またあとで来てね！"
+
 
 # 🔽 これがないとRenderで公開されない
 if __name__ == "__main__":

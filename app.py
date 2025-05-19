@@ -19,13 +19,20 @@ def home():
 @app.route("/webhook", methods=["POST"])
 def webhook():
     body = request.json
-    user_text = body["events"][0]["message"]["text"]
-    reply_token = body["events"][0]["replyToken"]
-
-    print(f"[DEBUG] ユーザー入力: {user_text}")
+    print(f"[DEBUG] 受信body: {body}")  # ← 追加で受信内容をログ出力
 
     try:
-        parts = user_text.strip().split()
+        event = body["events"][0]
+        if "message" not in event or "text" not in event["message"]:
+            print("[DEBUG] textメッセージではありません")
+            return "OK"
+
+        user_text = event["message"]["text"]
+        reply_token = event["replyToken"]
+
+        print(f"[DEBUG] ユーザー入力（repr）: {repr(user_text)}")
+
+        parts = user_text.strip().split(maxsplit=2)
         print(f"[DEBUG] 分割結果: {parts}")
 
         if len(parts) != 3:
@@ -72,6 +79,11 @@ def get_uranai(birthday, seiza, blood_type):
     except Exception as e:
         print(f"[GPTエラー] {e}")
         return "⚠️ 占い中に問題が発生しちゃった…またあとで来てね！"
+
+# Renderでの起動設定
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
 
 # Renderでの起動設定
 if __name__ == "__main__":

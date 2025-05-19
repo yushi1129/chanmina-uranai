@@ -14,3 +14,8 @@ def get_uranai(birthday, seiza, blood_type):
         print(f"[ERROR] GPT呼び出しに失敗: {e}")
         return "⚠️ 占い中にエラーが発生しちゃった…時間をおいてもう一度試してみてね。"
 
+import os
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))  # Renderが渡してくるPORTを使用
+    app.run(host="0.0.0.0", port=port)
